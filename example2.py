@@ -26,6 +26,9 @@ pygame.init()
 
 lives = 3
 
+clock = pygame.time.Clock()
+done_time = 0
+
 
 # Define a Player object by extending pygame.sprite.Sprite
 # The surface drawn on the screen is now an attribute of 'player'
@@ -36,9 +39,17 @@ class Player(pygame.sprite.Sprite):
         self.surf.fill((255, 255, 255))
         self.rect = self.surf.get_rect()
 
+    # Currently unused
     def damageFlash1(self):
         self.surf.fill((255, 0, 0))
-        print("I'm happening")
+        current_time = pygame.time.get_ticks()
+        print("Current time is" + str(current_time))
+        done_time = current_time + 100
+        print("Done time is" + str(done_time))
+        if current_time >= done_time:
+            self.surf.fill((255, 255, 255))
+
+
 
     def damageFlash2(self):
         self.surf.fill((255, 255, 255))
@@ -103,6 +114,7 @@ ADDENEMY = pygame.USEREVENT + 1
 pygame.time.set_timer(ADDENEMY, 250)
 
 PLAYERDAMAGE = pygame.USEREVENT + 2
+PLAYERDAMAGE2 = pygame.USEREVENT + 3
 
 # Instantiate player. Right now, this is just a rectangle.
 player = Player()
@@ -138,9 +150,13 @@ while running:
             all_sprites.add(new_enemy)
 
         elif event.type == PLAYERDAMAGE:
-            player.damageFlash1()
+            player.surf.fill((255, 0, 0))
+            current_time = pygame.time.get_ticks()
+            done_time = current_time + 200
 
 
+        elif event.type == PLAYERDAMAGE2:
+            player.damageFlash2()
 
     # Get the set of keys pressed and check for user input
     pressed_keys = pygame.key.get_pressed()
@@ -151,8 +167,13 @@ while running:
     # Update the player sprite based on user keypresses
     player.update(pressed_keys)
 
+    current_time = pygame.time.get_ticks()
+    clock.tick(100)
     # Fill the screen with black
     screen.fill((255, 174, 207))
+
+    if current_time >= done_time:
+        player.surf.fill((255, 255, 255))
 
     # Draw the all sprites
     for entity in all_sprites:
@@ -161,9 +182,10 @@ while running:
     # Check if any enemies have collided with the player
     if pygame.sprite.spritecollide(player, enemies, dokill=True, collided=None):
         # If so, then remove the player and stop the loop
-        pygame.event.post(PLAYERDAMAGE)
-        lives = lives -1
+        pygame.event.post(pygame.event.Event(PLAYERDAMAGE))
+        # pygame.time.set_timer(PLAYERDAMAGE2, 300)
 
+        lives = lives - 1
 
         print(lives)
         if lives <= 0:
